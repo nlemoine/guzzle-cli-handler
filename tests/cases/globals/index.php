@@ -3,8 +3,8 @@
 echo json_encode(
     [
         '_ENV' => [
-            'a' => $_ENV['a'],
-            'b' => $_ENV['b'],
+            'a' => getenv('a'),
+            'b' => getenv('b'),
         ],
         '_GET' => [
             'G' => [
@@ -23,7 +23,16 @@ echo json_encode(
             'C[b]' => $_COOKIE['C[b]'],
         ],
         '_SERVER' => [
-            'DOCUMENT_ROOT' => $_SERVER['DOCUMENT_ROOT'],
+            'REQUEST_URI'     => $_SERVER['REQUEST_URI'],
+            'REQUEST_METHOD'  => $_SERVER['REQUEST_METHOD'],
+            'HTTP_HOST'       => $_SERVER['HTTP_HOST'],
+            'SERVER_NAME'     => $_SERVER['SERVER_NAME'],
+            'QUERY_STRING'    => $_SERVER['QUERY_STRING'],
+            'PHP_SELF'        => $_SERVER['PHP_SELF'],
+            'SCRIPT_NAME'     => $_SERVER['SCRIPT_NAME'],
+            'SERVER_PROTOCOL' => $_SERVER['SERVER_PROTOCOL'],
+            'SERVER_PORT'     => $_SERVER['SERVER_PORT'],
+            'HTTPS'           => $_SERVER['HTTPS'],
         ],
     ],
     JSON_PRETTY_PRINT

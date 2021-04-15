@@ -20,6 +20,15 @@
         "C[b]": "elit"
     },
     "_SERVER": {
-        "DOCUMENT_ROOT": "\/var\/www"
+        "REQUEST_URI": "\/cool-url\/",
+        "REQUEST_METHOD": "POST",
+        "HTTP_HOST": "phpunit.localhost",
+        "SERVER_NAME": "phpunit.localhost",
+        "QUERY_STRING": "G[a]=dolor&G[b]=sit",
+        "PHP_SELF": "\/globals\/index.php",
+        "SCRIPT_NAME": "\/globals\/index.php",
+        "SERVER_PROTOCOL": "HTTP\/1.1",
+        "SERVER_PORT": "443",
+        "HTTPS": "on"
     }
 }
