@@ -28,7 +28,7 @@
         "PHP_SELF": "\/globals\/index.php",
         "SCRIPT_NAME": "\/globals\/index.php",
         "SERVER_PROTOCOL": "HTTP\/1.1",
-        "SERVER_PORT": "443",
+        "SERVER_PORT": 443,
         "HTTPS": "on"
     }
 }

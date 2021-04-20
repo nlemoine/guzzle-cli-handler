@@ -6,7 +6,6 @@ use Exception;
 use GuzzleHttp\Psr7\Request;
 use GuzzleHttp\Psr7\Response;
 use HelloNico\GuzzleCliHandler\CliHandler;
-use HelloNico\GuzzleCliHandler\GlobalsParser;
 use PHPUnit\Framework\TestCase;
 
 class CliHandlerTest extends TestCase
@@ -132,8 +131,7 @@ class CliHandlerTest extends TestCase
         return new CliHandler(
             __DIR__ . '/cases',
             __DIR__ . '/cases/' . $file,
-            $globalsHandler,
-            new GlobalsParser()
+            $globalsHandler
         );
     }
 }
