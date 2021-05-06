@@ -1,15 +1,15 @@
 <?php
 
-(function ($cliEntInput) {
-    if (empty($cliEntInput)) {
+(function ($guzzleCliHandlerVars) {
+    if (empty($guzzleCliHandlerVars)) {
         throw new Exception("GUZZLE_CLI_HANDLER environment variable hasn't been passed");
     }
 
-    if (!is_array($cliEntInput)) {
-        throw new Exception(sprintf('GUZZLE_CLI_HANDLER should be array, %s given', gettype($cliEntInput)));
+    if (!is_array($guzzleCliHandlerVars)) {
+        throw new Exception(sprintf('GUZZLE_CLI_HANDLER should be array, %s given', gettype($guzzleCliHandlerVars)));
     }
 
-    foreach ($cliEntInput['globals'] ?? [] as $global => $variables) {
+    foreach ($guzzleCliHandlerVars['globals'] ?? [] as $global => $variables) {
         $GLOBALS[$global] = $variables + ($GLOBALS[$global] ?? []);
     }
 

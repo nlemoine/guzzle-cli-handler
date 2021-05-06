@@ -14,40 +14,42 @@ without running webserver.
 ```php
 use GuzzleHttp\Client;
 use GuzzleHttp\HandlerStack;
-use Guzzle\Parser\Cookie\CookieParser;
-use Maximaster\CliEnt\CliEntHandler;
-use Maximaster\CliEnt\GlobalsParser;
-use Guzzle\Parser\Message\MessageParser;
+use HelloNico\GuzzleCliHandler\CliHandler;
 
-$cliEntHandler = new CliEntHandler(
-    new GlobalsParser(new CookieParser()),
-    new MessageParser(),
-    '/var/www',
+// Document root
+$docRoot = '/var/www';
+
+// File path
+// - If absolute, will directly use $filePath
+// - If relative, will be `$docRoot . DIRECTORY_SEPARATOR . $filePath`
+// - If URL requested ends with .php, will be overrided and set to `$docRoot . DIRECTORY_SEPARATOR . $urlPath`
+$filePath = 'index.php';
+
+$cliHandler = new CliHandler(
+    $docRoot,
+    $filePath,
     function (array &$globals) {
         // you can mofify global variables here before execution
         $globals['_ENV'] = ['a' => 'Lorem', 'b' => 'ipsum'];
-        $globals['_SERVER']['DOCUMENT_ROOT'] = '/var/www';
     }
 );
 
-$client = new Client(['handler' => HandlerStack::create($cliEntHandler)]);
+$client = new Client(['handler' => HandlerStack::create($cliHandler)]);
 $response = $client->get('http://localhost/install.php');
-// etc
 ```
 
 ## Installing
 
 ```
-composer require maximaster/cli-ent
+composer require hellonico/guzzle-cli-handler
 ```
 
-but you should also install [runkit7](https://github.com/runkit7/runkit7) which will be `ext-runkit7` or `ext-runkit`
-depending on version you chose.
+## Limitations
+
+Due to PHP running in CLI, it's unfortunately not possible to get response headers and maintain sessions.
 
 ## Developing
 
-You can use
-
-* `make build` - to prepare
-* `make test` - to run tests
-* `make lint` - to run static analysis
+* `composer test` - run phpunit
+* `composer analyse` - run phpstan
+* `composer lint` - run ecs (coding standards)

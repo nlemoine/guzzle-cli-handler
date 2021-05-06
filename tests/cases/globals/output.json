@@ -20,7 +20,7 @@
         "C[b]": "elit"
     },
     "_SERVER": {
-        "REQUEST_URI": "\/cool-url\/",
+        "REQUEST_URI": "\/cool-url\/?G[a]=dolor&G[b]=sit",
         "REQUEST_METHOD": "POST",
         "HTTP_HOST": "phpunit.localhost",
         "SERVER_NAME": "phpunit.localhost",

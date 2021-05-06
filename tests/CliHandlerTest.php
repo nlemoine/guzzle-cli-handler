@@ -126,11 +126,11 @@ class CliHandlerTest extends TestCase
      *
      * @throws Exception
      */
-    private function getHandler(string $file, ?callable $globalsHandler = null): CliHandler
+    private function getHandler($filePath = null, ?callable $globalsHandler = null): CliHandler
     {
         return new CliHandler(
             __DIR__ . '/cases',
-            __DIR__ . '/cases/' . $file,
+            $filePath,
             $globalsHandler
         );
     }

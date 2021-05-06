@@ -14,7 +14,6 @@ use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\StreamInterface;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\Process\Exception\ProcessFailedException;
 use Symfony\Component\Process\Exception\ProcessTimedOutException;
 use Symfony\Component\Process\PhpExecutableFinder;
 use Symfony\Component\Process\Process;
@@ -23,23 +22,23 @@ class CliHandler
 {
     public const ENV_NAME = 'GUZZLE_CLI_HANDLER';
 
-    /** @var callable|null */
-    private $globalsHandler;
-
     /** @var string */
     private string $documentRoot;
 
     /** @var string|null */
     private ?string $filePath;
 
-    /** @var string */
-    private string $prependFile;
+    /** @var callable|null */
+    private $globalsHandler;
+
+    /** @var string|null */
+    private ?string $prependFile;
 
     /**
      * @param string $documentRoot
      * @param string|null $filePath
      * @param callable|null $globalsHandler
-     * @param string $prependFile
+     * @param string|null $prependFile
      *
      * @throws \Exception
      */
@@ -47,10 +46,20 @@ class CliHandler
         string $documentRoot,
         ?string $filePath = null,
         ?callable $globalsHandler = null,
-        string $prependFile = null
+        ?string $prependFile = null
     ) {
         $this->documentRoot = \rtrim($documentRoot, '/\\');
-        $this->filePath = $filePath ?? $this->documentRoot . DIRECTORY_SEPARATOR . 'index.php';
+
+        // Absolute path
+        if ($filePath) {
+            if ($this->isAbsolutePath($filePath)) {
+                $this->filePath = $filePath;
+            } else {
+                $this->filePath = $this->documentRoot . DIRECTORY_SEPARATOR . $filePath;
+            }
+        } else {
+            $this->filePath = $this->documentRoot . DIRECTORY_SEPARATOR . 'index.php';
+        }
 
         if ($prependFile && !\file_exists($prependFile)) {
             throw new \Exception(\sprintf("Specified append file '%' doesn't exist", $prependFile));
@@ -109,7 +118,16 @@ class CliHandler
 
         $globals = $this->getGlobals($request);
 
-        $this->globalsHandler && ($this->globalsHandler)($globals);
+        if (\is_callable($this->globalsHandler)) {
+            ($this->globalsHandler)($globals);
+        }
+
+        // Reset $_SERVER / $_ENV
+        // @see https://github.com/symfony/process/blob/98cb8eeb72e55d4196dd1e36f1f16e7b3a9a088e/Process.php#L308
+        $tmp_SERVER = $_SERVER;
+        $tmp_ENV = $_ENV;
+        $_SERVER = [];
+        $_ENV = [];
 
         $process = new Process(
             \array_merge(
@@ -139,11 +157,15 @@ class CliHandler
             return P\Create::rejectionFor($exception);
         }
 
+        // Restore $_ENV & $_SERVER
+        $_SERVER = $tmp_SERVER;
+        $_ENV = $tmp_ENV;
+
         $body = $process->getOutput();
 
         $status = (int) \substr($body, -3);
 
-        $stream = Psr7\Utils::streamFor(\rtrim($body, (string) $status));
+        $stream = Psr7\Utils::streamFor(\substr($body, 0, -3));
         $stream = $this->checkDecode($options, $stream);
         $stream = Psr7\Utils::streamFor($stream);
 
@@ -179,7 +201,7 @@ class CliHandler
         \parse_str($request->getBody()->getContents(), $post);
 
         $serverRequest = Request::create(
-            (string) $request->getUri(),
+            \urldecode((string) $request->getUri()),
             $request->getMethod(),
             $post,
             Psr7\Header::parse($request->getHeader('Cookie'))[0] ?? [],
@@ -191,7 +213,7 @@ class CliHandler
         $serverRequest->headers->add($request->getHeaders());
 
         // @see \Symfony\Component\HttpFoundation\Request::overrideGlobals()
-        $serverRequest->server->set('QUERY_STRING', \http_build_query($serverRequest->query->all(), '', '&'));
+        $serverRequest->server->set('QUERY_STRING', \urldecode(Request::normalizeQueryString(\http_build_query($serverRequest->query->all(), '', '&'))));
 
         $globals = [
             '_ENV'     => [],
@@ -214,6 +236,7 @@ class CliHandler
         $request = ['g' => $globals['_GET'], 'p' => $globals['_POST'], 'c' => $globals['_COOKIE']];
 
         $requestOrder = \ini_get('request_order') ?: \ini_get('variables_order');
+        /** @phpstan-ignore-next-line */
         $requestOrder = \preg_replace('#[^cgp]#', '', \strtolower($requestOrder)) ?: 'gp';
 
         $globals['_REQUEST'] = [[]];
@@ -280,5 +303,23 @@ class CliHandler
         }
 
         return $stream;
+    }
+
+    /**
+     * Returns whether the file path is an absolute path.
+     *
+     * @return bool
+     */
+    public function isAbsolutePath(string $file)
+    {
+        return '' !== $file && (
+            \strspn($file, '/\\', 0, 1)
+            || (
+                \strlen($file) > 3 && \ctype_alpha($file[0])
+                && ':' === $file[1]
+                && \strspn($file, '/\\', 2, 1)
+            )
+            || null !== \parse_url($file, \PHP_URL_SCHEME)
+        );
     }
 }
