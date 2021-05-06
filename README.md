@@ -1,13 +1,11 @@
-# maximaster/cli-ent
+# Guzzle CLI handler
 
 Guzzle [handler](https://docs.guzzlephp.org/en/stable/handlers-and-middleware.html#handlers) to imitate HTTP calls
 through CLI.
 
-## Reasoning
+## Motivation
 
-Imagine that you have a legacy CMS which can be installed only through web interface. By using the handler you can
-install such a CMS using CLI just by calling needed http queries like you would do it through web interface, but
-without running webserver.
+Execute requests without running a webserver.
 
 ## Usage
 
